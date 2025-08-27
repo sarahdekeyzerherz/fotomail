@@ -1,0 +1,69 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>Mail fotolinks</title>
+<style>
+  body { font-family: system-ui, Arial, sans-serif; padding:16px; max-width:720px; }
+  .btn { display:inline-block; padding:10px 14px; border-radius:6px; text-decoration:none; background:#0079c1; color:#fff;}
+  .info { margin-top:12px; font-size:13px; color:#333; }
+  pre { background:#f6f6f6; padding:8px; border-radius:6px; font-size:12px; white-space:pre-wrap; }
+  .muted { color:#666; font-size:13px; }
+</style>
+
+<h3>Open e-mail met alle foto-links</h3>
+<div id="status" class="info">Bezig met ophalen van foto-links…</div>
+
+<script>
+(async function() {
+  // Config via URL params. Je kunt service, email en eventueel token via querystring meegeven.
+  const params = new URLSearchParams(location.search);
+  const objectId = params.get('objectid');                 // verplicht
+  const serviceURL = params.get('service') || 
+    'https://services9.arcgis.com/6eulETjO0UHT7GmA/arcgis/rest/services/Plaatsbezoek_openbarewerken/FeatureServer/0';
+  const emailTo = params.get('email') || 'ict@herzele.be';
+  const token = params.get('token') || ''; // optioneel (alleen indien laag beveiligd en je token hebt)
+
+  const statusEl = document.getElementById('status');
+
+  if (!objectId) {
+    statusEl.innerHTML = '<span class="muted">Geen OBJECTID opgegeven. Gebruik ?objectid=123 in de URL.</span>';
+    return;
+  }
+
+  // Build REST URL
+  const attachmentsURL = `${serviceURL.replace(/\/$/, '')}/${encodeURIComponent(objectId)}/attachments?f=json${token ? '&token=' + encodeURIComponent(token) : ''}`;
+
+  try {
+    const r = await fetch(attachmentsURL);
+    if (!r.ok) throw new Error('REST call gaf fout: ' + r.status);
+    const j = await r.json();
+
+    const infos = (j.attachmentInfos || []).filter(a => (a.contentType || '').startsWith('image/'));
+    if (!infos.length) {
+      statusEl.innerHTML = '<span class="muted">Geen foto\'s gevonden voor dit object.</span>';
+      return;
+    }
+
+    // Maak lijst met url's
+    const lines = infos.map((a, i) => `${serviceURL.replace(/\/$/, '')}/${encodeURIComponent(objectId)}/attachments/${encodeURIComponent(a.id)}`);
+
+    // Subject & body (gebruik plain text / URLs — HTML in mailto is niet betrouwbaar)
+    const subject = `Melding plaatsbezoek openbare werken ID ${objectId}`;
+    const bodyPlain = `Beste,\nGraag controle van onderstaande melding.\n\n${lines.map((l, i) => `Foto ${i+1}: ${l}`).join('\n')}\n\nMet vriendelijke groet,`;
+
+    // Bouw mailto
+    const mailto = `mailto:${encodeURIComponent(emailTo)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyPlain)}`;
+
+    // Toon knop en voorbeeld
+    statusEl.innerHTML = `
+      <a class="btn" id="mailBtn" href="${mailto}">Open e-mail met ${infos.length} foto-links</a>
+      <div class="info"><strong>Voorbeeld body:</strong></div>
+      <pre>${bodyPlain}</pre>
+      <div class="muted">Let op: sommige mailclients beperken de lengte van mailto-links.</div>
+    `;
+
+  } catch (err) {
+    console.error(err);
+    statusEl.innerHTML = '<span class="muted">Fout bij ophalen foto-links. Controleer of de service publiek bereikbaar is of geef een token mee.</span>';
+  }
+})();
+</script>
