@@ -58,7 +58,7 @@
       <a class="btn" id="mailBtn" href="${mailto}">Open e-mail met ${infos.length} foto-links</a>
       <div class="info"><strong>Voorbeeld body:</strong></div>
       <pre>${bodyPlain}</pre>
-      <div class="muted">Let op: sommige mailclients beperken de lengte van mailto-links.</div>
+      <div class="muted"> </div>
     `;
 
   } catch (err) {
@@ -66,4 +66,5 @@
     statusEl.innerHTML = '<span class="muted">Fout bij ophalen foto-links. Controleer of de service publiek bereikbaar is of geef een token mee.</span>';
   }
 })();
+
 </script>
