@@ -19,7 +19,7 @@
   const objectId = params.get('objectid');                 // verplicht
   const serviceURL = params.get('service') || 
     'https://services9.arcgis.com/6eulETjO0UHT7GmA/arcgis/rest/services/Plaatsbezoek_openbarewerken/FeatureServer/0';
-  const emailTo = params.get('email') || 'ict@herzele.be';
+  const emailTo = params.get('email') || 'openbarewerken@herzele.be';
   const token = params.get('token') || ''; // optioneel (alleen indien laag beveiligd en je token hebt)
 
   const statusEl = document.getElementById('status');
@@ -48,7 +48,7 @@
 
     // Subject & body (gebruik plain text / URLs — HTML in mailto is niet betrouwbaar)
     const subject = `Melding plaatsbezoek openbare werken ID ${objectId}`;
-    const bodyPlain = `Beste,\nGraag controle van onderstaande melding.\n\n${lines.map((l, i) => `Foto ${i+1}: ${l}`).join('\n')}\n\nMet vriendelijke groet,`;
+    const bodyPlain = `Beste,\nGraag controle van onderstaande melding.\n\n${lines.map((l, i) => `Foto ${i+1}: ${l}`).join('\n')}\n\nMet vriendelijke groeten,`;
 
     // Bouw mailto
     const mailto = `mailto:${encodeURIComponent(emailTo)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyPlain)}`;
@@ -68,3 +68,4 @@
 })();
 
 </script>
+
